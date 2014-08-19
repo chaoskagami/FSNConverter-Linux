@@ -43,7 +43,8 @@ FAQ:
 	   out about some tlg files.
 
 	Q: I never managed to get fate to run on wine. HELP
-	A: Install Dx9. Also, you probably won't get the videos working so rename
-	   video.xp3 to video.xp3.disabled or something.
+	A: Install Dx9. Also, you probably won't get the videos working so
+	   rename video.xp3 to video.xp3.disabled or something.
 
-For license read COPYING. tl;dr same as weaboo.nl, since I can't change the license ( GPLv2 )
+For license read COPYING. tl;dr same as weaboo.nl, since I can't change the
+license ( GPLv2 ) nor do I want to in this case.
