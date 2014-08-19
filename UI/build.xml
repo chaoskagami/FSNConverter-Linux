@@ -1,0 +1,289 @@
+
+<project name="VNDS" basedir="." default="main">
+
+<!-- Imports -->
+
+<!-- Properties -->
+
+  <property name="build.sysclasspath" value="ignore"/>
+  <property name="src.dir" value="src" />
+  <property name="bin.dir" value="bin" />
+  <property name="dist.dir" value="dist" />
+  <property name="tools.dir" value="tools" />
+
+  <path id="classpath">
+    <fileset dir="." includes="lib/**/*.jar" />
+  </path>
+
+  <pathconvert property="jar-classpath-raw" pathsep=" " dirsep="/" refid="classpath">
+    <map from="${basedir}/" to="" />
+  </pathconvert>
+  <property name="jar-classpath" value=". ${jar-classpath-raw}" />
+
+  <property name="fate-packages" value="nl/weeaboo/vnds/* nl/weeaboo/vnds/installer/** nl/weeaboo/krkr/** nl/weeaboo/vnds/tools/**" />
+  <property name="umineko-packages" value="nl/weeaboo/umineko/** nl/weeaboo/vnds/*.* nl/weeaboo/vnds/tools/**" />
+  <property name="higurashi-packages" value="nl/weeaboo/vnds/* nl/weeaboo/bgi/** nl/weeaboo/vnds/tools/**" />
+  <property name="kirakira-packages" value="nl/weeaboo/vnds/* nl/weeaboo/bgi/** nl/weeaboo/vnds/tools/**" />
+  <property name="crosschannel-packages" value="nl/weeaboo/vnds/* nl/weeaboo/cc/** nl/weeaboo/vnds/tools/**" />
+  <property name="ever17-packages" value="nl/weeaboo/vnds/* nl/weeaboo/kid/** nl/weeaboo/kid/ever17/** nl/weeaboo/vnds/tools/**" />
+  <property name="inganock-packages" value="nl/weeaboo/vnds/* nl/weeaboo/liar/** nl/weeaboo/vnds/tools/**" />
+  <property name="sharnoth-packages" value="nl/weeaboo/vnds/* nl/weeaboo/liar/** nl/weeaboo/vnds/tools/**" />
+  <property name="never7-packages" value="nl/weeaboo/vnds/* nl/weeaboo/kid/** nl/weeaboo/kid/never7/** nl/weeaboo/vnds/tools/**" />
+  
+<!-- Tasks -->
+
+  <macrodef name="dist-converter">
+    <attribute name="name" />
+    <attribute name="template-name" />
+    <attribute name="packages" />
+
+    <sequential>
+      <!-- ZIP source code -->
+      <zip basedir="src" destfile="${dist.dir}/src.zip" includes="@{packages}" />
+      <delete dir="${dist.dir}/src" />
+
+      <!-- Add templates -->
+      <copy todir="${dist.dir}/template/@{template-name}">
+        <fileset dir="template/@{template-name}" />
+      </copy>
+
+      <!-- Rename dist dir -->
+      <move todir="@{name}Converter">
+        <fileset dir="${dist.dir}"/>
+      </move>
+    </sequential>
+  </macrodef>
+  
+<!-- Targets -->
+
+  <target name="init">
+    <tstamp />
+  </target>
+
+  <!-- Remove all generated resources -->
+  <target name="clean" depends="init">
+    <delete dir="${dist.dir}" />
+    <delete dir="${bin.dir}" />
+    <delete dir="." includes="*.jar *.exe" />
+  </target>
+
+  <target name="compile" depends="init">  
+    <mkdir dir="${bin.dir}"/>
+    
+    <javac srcdir="${src.dir}" destdir="${bin.dir}" encoding="UTF-8" debug="true">
+      <classpath refid="classpath" />
+    </javac>
+
+    <!-- Copy resources (embedded images, etc.) to bin dir -->
+    <copy todir="${bin.dir}">
+      <fileset dir="${src.dir}">
+        <exclude name="**/*.java" />
+      </fileset>
+    </copy>
+  </target>
+
+  <!-- Do a clean compile and generate the main jar -->
+  <target name="jar" depends="clean, compile">      
+    <jar destfile="NovelManager.jar" basedir="${bin.dir}"
+         includes="nl/weeaboo/vnds/* nl/weeaboo/vnds/novelmanager/**">
+      <manifest>
+        <attribute name="Class-Path" value="${jar-classpath}"/>
+        <attribute name="Main-Class" value="nl.weeaboo.vnds.novelmanager.NovelSwitcherGUI"/>
+      </manifest>
+    </jar>
+    <jar destfile="ImageConverter.jar" basedir="${bin.dir}"
+         includes="nl/weeaboo/vnds/* nl/weeaboo/vnds/tools/*">
+      <manifest>
+        <attribute name="Class-Path" value="${jar-classpath}"/>
+        <attribute name="Main-Class" value="nl.weeaboo.vnds.tools.ImageConverterGUI"/>
+      </manifest>
+    </jar>
+    <jar destfile="SoundConverter.jar" basedir="${bin.dir}"
+         includes="nl/weeaboo/vnds/* nl/weeaboo/vnds/tools/*">
+      <manifest>
+        <attribute name="Class-Path" value="${jar-classpath}"/>
+        <attribute name="Main-Class" value="nl.weeaboo.vnds.tools.SoundConverterGUI"/>
+      </manifest>
+    </jar>
+    <jar destfile="TextureConverter.jar" basedir="${bin.dir}"
+         includes="nl/weeaboo/vnds/* nl/weeaboo/vnds/tools/*">
+      <manifest>
+        <attribute name="Class-Path" value="${jar-classpath}"/>
+        <attribute name="Main-Class" value="nl.weeaboo.vnds.tools.TextureConverterGUI"/>
+      </manifest>
+    </jar>
+    <jar destfile="FSNInstaller.jar" basedir="${bin.dir}"
+         includes="nl/weeaboo/vnds/* nl/weeaboo/vnds/installer/** nl/weeaboo/krkr/fate/FateInstaller*">
+      <manifest>
+        <attribute name="Class-Path" value="${jar-classpath}"/>
+        <attribute name="Main-Class" value="nl.weeaboo.krkr.fate.FateInstaller"/>
+      </manifest>
+    </jar>
+    <jar destfile="FSNConverter.jar" basedir="${bin.dir}"
+         includes="${fate-packages}">
+      <manifest>
+        <attribute name="Class-Path" value="${jar-classpath}"/>
+        <attribute name="Main-Class" value="nl.weeaboo.krkr.fate.ConversionGUI"/>
+      </manifest>
+    </jar>
+
+    <!-- Umineko Converter -->
+    <jar destfile="UminekoConverter.jar" basedir="${bin.dir}" includes="${umineko-packages}">
+      <manifest>
+        <attribute name="Class-Path" value="${jar-classpath}"/>
+        <attribute name="Main-Class" value="nl.weeaboo.umineko.ConversionGUI"/>
+      </manifest>
+    </jar>
+
+    <!-- Higurashi Converter -->
+    <jar destfile="HigurashiConverter.jar" basedir="${bin.dir}" includes="${higurashi-packages}">
+      <manifest>
+        <attribute name="Class-Path" value="${jar-classpath}"/>
+        <attribute name="Main-Class" value="nl.weeaboo.bgi.higurashi.ConversionGUI"/>
+      </manifest>
+    </jar>
+
+    <!-- KiraKira Converter -->
+    <jar destfile="KiraKiraConverter.jar" basedir="${bin.dir}" includes="${kirakira-packages}">
+      <manifest>
+        <attribute name="Class-Path" value="${jar-classpath}"/>
+        <attribute name="Main-Class" value="nl.weeaboo.bgi.kirakira.ConversionGUI"/>
+      </manifest>
+    </jar>
+
+    <!-- CrossChannel Converter -->
+    <jar destfile="CrossChannelConverter.jar" basedir="${bin.dir}" includes="${crosschannel-packages}">
+      <manifest>
+        <attribute name="Class-Path" value="${jar-classpath}"/>
+        <attribute name="Main-Class" value="nl.weeaboo.cc.ConversionGUI"/>
+      </manifest>
+    </jar>
+
+    <!-- Ever17 Converter -->
+    <jar destfile="Ever17Converter.jar" basedir="${bin.dir}" includes="${ever17-packages}">
+      <manifest>
+        <attribute name="Class-Path" value="${jar-classpath}"/>
+        <attribute name="Main-Class" value="nl.weeaboo.kid.ever17.ConversionGUI"/>
+      </manifest>
+    </jar>
+
+    <!-- Never7 Converter -->
+    <jar destfile="Never7Converter.jar" basedir="${bin.dir}" includes="${never7-packages}">
+      <manifest>
+        <attribute name="Class-Path" value="${jar-classpath}"/>
+        <attribute name="Main-Class" value="nl.weeaboo.kid.never7.ConversionGUI"/>
+      </manifest>
+    </jar>
+
+    <!-- Inganock Converter -->
+    <jar destfile="InganockConverter.jar" basedir="${bin.dir}" includes="${inganock-packages}">
+      <manifest>
+        <attribute name="Class-Path" value="${jar-classpath}"/>
+        <attribute name="Main-Class" value="nl.weeaboo.liar.inganock.ConversionGUI"/>
+      </manifest>
+    </jar>
+
+    <!-- Sharnoth Converter -->
+    <jar destfile="SharnothConverter.jar" basedir="${bin.dir}" includes="${sharnoth-packages}">
+      <manifest>
+        <attribute name="Class-Path" value="${jar-classpath}"/>
+        <attribute name="Main-Class" value="nl.weeaboo.liar.sharnoth.ConversionGUI"/>
+      </manifest>
+    </jar>
+
+  </target>
+
+  <target name="dist" depends="clean, jar">
+    <delete dir="${dist.dir}" />
+    <mkdir dir="${dist.dir}" />
+
+    <copy todir="${dist.dir}/lib">
+      <fileset dir="lib" />
+    </copy>
+
+    <copy todir="${dist.dir}/${tools.dir}">
+      <fileset dir="${tools.dir}" />
+    </copy>
+
+    <copy todir="${dist.dir}">
+      <fileset dir=".">
+        <include name="license.txt" />
+        <include name="build.xml" />
+      </fileset>
+    </copy>
+  </target>
+
+  <target name="dist-sharnoth" depends="dist">
+    <dist-converter name="Sharnoth" template-name="sharnoth" packages="${sharnoth-packages}" />
+  </target>
+
+  <target name="dist-inganock" depends="dist">
+    <dist-converter name="Inganock" template-name="inganock" packages="${inganock-packages}" />
+  </target>
+  
+  <target name="dist-ever17" depends="dist">
+    <dist-converter name="Ever17" template-name="ever17" packages="${ever17-packages}" />
+  </target>
+  
+  <target name="dist-never7" depends="dist">
+    <dist-converter name="Never7" template-name="never7" packages="${never7-packages}" />
+  </target>
+  
+  <target name="dist-crosschannel" depends="dist">
+    <dist-converter name="CrossChannel" template-name="crosschannel" packages="${crosschannel-packages}" />
+  </target>
+
+  <target name="dist-kirakira" depends="dist">
+    <dist-converter name="KiraKira" template-name="kirakira" packages="${kirakira-packages}" />
+  </target>
+
+  <target name="dist-higurashi" depends="dist">
+    <!-- Add Kai template -->
+    <copy todir="${dist.dir}/template/higurashi-kai">
+      <fileset dir="template/higurashi-kai" />
+    </copy>
+
+    <dist-converter name="Higurashi" template-name="higurashi" packages="${higurashi-packages}" />
+  </target>
+
+  <target name="dist-umineko" depends="dist">
+    <!-- Add Chiru templates -->
+    <copy todir="${dist.dir}/template/umineko-chiru">
+      <fileset dir="template/umineko-chiru" />
+    </copy>
+
+    <dist-converter name="Umineko" template-name="umineko" packages="${umineko-packages}" />
+  </target>
+
+  <target name="dist-fate" depends="dist">
+    <copy todir="${dist.dir}" file="FSNInstaller.jar" />
+
+    <dist-converter name="FSN" template-name="fate" packages="${fate-packages}" />
+  </target>
+  
+  <target name="dist-vnds-tools" depends="dist">
+
+    <!-- ZIP source code -->
+    <zip basedir="src" destfile="${dist.dir}/src.zip"
+    	includes="nl/weeaboo/vnds/tools/*" />
+    <delete dir="${dist.dir}/src" />
+
+    <!-- Include additional file(s) -->
+    <copy todir="${dist.dir}">
+      <fileset dir=".">
+        <include name="ImageConverter.jar" />
+        <include name="SoundConverter.jar" />
+        <include name="TextureConverter.jar" />
+      </fileset>
+    </copy>
+
+    <!-- Rename dist dir -->
+    <move todir="vnds-tools">
+      <fileset dir="${dist.dir}"/>
+    </move>
+
+  </target>
+	
+  <target name="main" depends="jar" />
+
+</project>

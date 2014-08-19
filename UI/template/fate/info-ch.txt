@@ -1,0 +1,2 @@
+title=Fate/Stay Night
+fontsize=16

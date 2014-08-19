@@ -1,0 +1,4 @@
+<global>
+  <var name="gセイバークリア" type="int" value="1"></var>
+  <var name="g凛クリア" type="int" value="1"></var>
+</global>

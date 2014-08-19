@@ -1,0 +1,18 @@
+
+There are two ways of installing, the basic install contains all the routes and voices.
+The advanced installation method allows you to select which routes you want to install.
+Installing only one route reduces the install size from 130MB to 75MB~100MB.
+
+Basic Installation
+1. Copy the contents of "base_install" to /vnds/novels/fate on your flashcard.
+2. Optional. Overwrite the script.zip and info.txt on the DS with the ones in "patch-ja" to play the game in Japanese.
+3. Run with vnds.nds (http://www.digital-haze.net/vnds.php)
+
+Advanced installation
+1. Run "FateInstaller.jar" (you may need to install Java first: http://java.com).
+2. Select the routes you want to install, press install and choose a temporary install folder on your pc.
+3. Copy the generated "fate" folder to /vnds/novels/ on your flashcard
+4. Optional. Overwrite the script.zip and info.txt on the DS with the ones in "patch-ja" to play the game in Japanese.
+5. Run with vnds.nds (http://www.digital-haze.net/vnds.php)
+
+Go to http://www.weeaboo.nl for updates and more information
