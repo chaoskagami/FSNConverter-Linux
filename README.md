@@ -20,6 +20,7 @@ It wasn't nearly that simple. Some code used windows APIs for files, and some co
 ### Install these dependencies to run the blob
  - pngcrush
  - ffmpeg/libav
+ - imagemagick (the convert tool)
  - liboggz
  - > java1.7 (Note: I build with openjdk-7. There's no reason why 1.6 shouldn't work other than outdatedness)
 
