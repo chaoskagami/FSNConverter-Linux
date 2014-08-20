@@ -9,7 +9,16 @@ if [ "$F" == "build" ]; then
 
 	cp -ra Distrib Out
 
-	cp UI/FSN* Out/
+	if [ ! -e FSNConverter.jar ]; then
+		exit 1
+	fi
+
+	cp UI/FSNConverter.jar Out/
+
+	if [ ! -e FSNInstaller.jar ]; then
+		exit 1
+	fi
+
 	cp -ra UI/lib Out/lib
 	cp -ra UI/template Out/template
 
@@ -27,14 +36,30 @@ if [ "$F" == "build" ]; then
 	cd ahx2wav
 	chmod +x make.sh
 	./make.sh ahx2wav
+
+	if [ ! -e ahx2wav ]; then
+		exit 1
+	fi
+
 	mv ahx2wav ../../Out/bin/
 
 	cd ../ima2raw
 	g++ -o ima2raw ima2raw.cpp
+
+	if [ ! -e ima2raw ]; then
+		exit 1
+	fi
+
+
 	mv ima2raw ../../Out/bin/
 
 	cd ../tlg2bmp
 	g++ -o tlg2bmp tlg2bmp.cpp
+
+	if [ ! -e tlg2bmp ]; then
+		exit 1
+	fi
+
 	mv tlg2bmp ../../Out/bin/	
 elif [ "$F" == "clean" ]; then
 	rm -rf Out
@@ -44,3 +69,5 @@ elif [ "$F" == "clean" ]; then
 	ant clean
 	cd ..
 fi
+
+exit 0
