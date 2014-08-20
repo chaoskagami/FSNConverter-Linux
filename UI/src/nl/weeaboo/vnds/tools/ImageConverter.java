@@ -313,7 +313,7 @@ public class ImageConverter {
 				ImageIO.write(result, "bmp", new File(bmpFile));
 
 				Process p = ProcessUtil.execInDir(String.format(
-						"cjpeg -quality %d \"%s\" \"%s\"",
+						"cconvert -quality %d \"%s\" \"%s\"",
 						quality, bmpFile, tmpFile),
 						"");
 				ProcessUtil.waitFor(p);
