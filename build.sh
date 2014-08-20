@@ -35,7 +35,7 @@ if [ "$F" == "build" ]; then
 
 	cd ahx2wav
 	chmod +x make.sh
-	./make.sh ahx2wav
+	gcc -lm -o ahx2wav ahx2wav.c getopt.c
 
 	if [ ! -e ahx2wav ]; then
 		exit 1
