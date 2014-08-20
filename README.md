@@ -5,7 +5,7 @@ It wasn't nearly that simple. Some code used windows APIs for files, and some co
 
 ### The issues I ran into:
  - Posix API not used for file access. I replaced the API in C close to 1:1
- - Bad code. Like 0[ptr++] . It's not ASLR friendly. Hell, it should probably just segfault.
+ - Bad code. Like ```0[ptr++]``` . It's not ASLR friendly. Hell, it should probably just segfault.
  - Do not hardcode C: and Z: into your java. Repeat, don't hardcode windows paths.
  - ffmpeg and libav are both the same thing, but the program only uses ffmpeg
  - System tools really should be preferred and/or required on linux.
