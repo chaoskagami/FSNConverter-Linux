@@ -9,13 +9,13 @@ if [ "$F" == "build" ]; then
 
 	cp -ra Distrib Out
 
-	if [ ! -e FSNConverter.jar ]; then
+	if [ ! -e UI/FSNConverter.jar ]; then
 		exit 1
 	fi
 
 	cp UI/FSNConverter.jar Out/
 
-	if [ ! -e FSNInstaller.jar ]; then
+	if [ ! -e UI/FSNInstaller.jar ]; then
 		exit 1
 	fi
 
