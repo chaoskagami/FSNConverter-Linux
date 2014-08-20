@@ -34,7 +34,7 @@ if [ "$F" == "build" ]; then
 	cd Tools/
 
 	cd ahx2wav
-	chmod +x make.sh
+
 	gcc -lm -o ahx2wav ahx2wav.c getopt.c
 
 	if [ ! -e ahx2wav ]; then
@@ -60,7 +60,7 @@ if [ "$F" == "build" ]; then
 		exit 1
 	fi
 
-	mv tlg2bmp ../../Out/bin/	
+	mv tlg2bmp ../../Out/bin/
 elif [ "$F" == "clean" ]; then
 	rm -rf Out
 	cd Tools/ahx2wav

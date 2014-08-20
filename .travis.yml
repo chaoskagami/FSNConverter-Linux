@@ -1,4 +1,6 @@
 language: java
+before_install: 
+  - sudo apt-get install build-essential
 jdk:
   - openjdk7
 script: ./build.sh build
