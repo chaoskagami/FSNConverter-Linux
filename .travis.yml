@@ -1,6 +1,8 @@
 language: java
-before_install: 
-  - sudo apt-get install build-essential
+compiler:
+  - gcc
 jdk:
   - openjdk7
+before_install: 
+  - sudo apt-get install g++
 script: ./build.sh build
