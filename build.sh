@@ -64,7 +64,6 @@ if [ "$F" == "build" ]; then
 elif [ "$F" == "clean" ]; then
 	rm -rf Out
 	cd Tools/ahx2wav
-	./make.sh clean
 	cd ../../UI
 	ant clean
 	cd ..
