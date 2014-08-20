@@ -22,10 +22,10 @@ public class XP3Extractor {
 	//Temporary buffers for unzip
     private static final byte infBuffer[] = new byte[64 * 1024];
     private static final byte readBuffer[] = new byte[64 * 1024];
-	
-	public XP3Extractor() {		
+
+	public XP3Extractor() {
 	}
-	
+
 	//Functions
 	public static final int read_s32(InputStream in) throws IOException {
 		return (int)readLE(in, 4);
@@ -40,20 +40,20 @@ public class XP3Extractor {
 		}
 		return result;
 	}
-	
+
 	/**
 	 * Warning: dst should use ascii-only in its pathname
 	 */
 	public void extract(String archive, String dst, ProgressListener pl) throws IOException {
 		Log.v("Extracting " + archive);
-		
+
 		FileInputStream fin = new FileInputStream(archive);
 		FileChannel fc = fin.getChannel();
-		
+
 		int origSize;
 		File uncompressedFile = new File(dst+"/__temp__.dat");
 		uncompressedFile.getParentFile().mkdirs();
-		
+
 		{
 			byte signature[] = new byte[] {(byte)'X', (byte)'P', (byte)'3',
 					(byte)0x0D, (byte)0x0A, (byte) ' ', (byte)0x0A,
@@ -65,18 +65,18 @@ public class XP3Extractor {
 					throw new IOException("FileFormat error");
 				}
 			}
-			
+
 			int indexOffset = (int)read_s64(fin);
 			if (indexOffset > fc.size()) throw new IOException("FileFormat error");
 			fc.position(indexOffset);
-	
+
 			boolean compression = readLE(fin, 1) != 0;
 			if (compression) {
 				int compSize = (int)read_s64(fin);
 				origSize = (int)read_s64(fin);
-				
+
 				if (indexOffset+compSize+17 != fc.size()) throw new IOException("FileFormat error");
-		
+
 				int uncompressedL = -1;
 				BufferedOutputStream bout = new BufferedOutputStream(new FileOutputStream(uncompressedFile));
 				try {
@@ -84,7 +84,7 @@ public class XP3Extractor {
 				} finally {
 					bout.close();
 				}
-				
+
 				if (uncompressedL != origSize) throw new IOException("FileFormat error");
 			} else {
 				origSize = (int)read_s64(fin);
@@ -102,7 +102,7 @@ public class XP3Extractor {
 
 		FileInputStream uncompressedIn = new FileInputStream(uncompressedFile);
 		FileChannel uncompressedC = uncompressedIn.getChannel();
-		
+
 		byte out[] = new byte[1024 * 1024];
 		int outL = 0;
 
@@ -110,20 +110,20 @@ public class XP3Extractor {
 		int read = 0;
 		while (uncompressedC.position() < origSize) {
 			Entry entry = readEntry(uncompressedIn);
-			
+
 			File outFile = new File(String.format("%s/%s", dst, entry.file));
 			outFile.getParentFile().mkdirs();
 
 			outL = 0;
 			t++;
-			
-			if (pl != null && (t & 0xFF) == 0) {				
+
+			if (pl != null && (t & 0xFF) == 0) {
 				pl.onProgress(read, (int)fc.size(), "");
 			}
-			
+
 			//Log.verbose("[write] " + outFile.getAbsolutePath());
 			//Benchmark.tick();
-			
+
 			//Write segments to seperate files
 			int totalSize = 0;
 			for (Segment segment : entry.segments) {
@@ -132,7 +132,7 @@ public class XP3Extractor {
 			if (out.length < totalSize) {
 				out = new byte[totalSize];
 			}
-			
+
 			for (Segment segment : entry.segments) {
 				fc.position(segment.offset);
 
@@ -144,12 +144,12 @@ public class XP3Extractor {
 
 				read += segment.compSize;
 			}
-						
-			//Decrypt			
+
+			//Decrypt
 			if (entry.encrypted) {
 				decrypt(outFile.getName(), out, outL);
 			}
-			
+
 			try {
 				if (outFile.getName().endsWith(".tlg")) {
 					if (out.length >= 2 && out[0] == 'B' && out[1] == 'M') {
@@ -164,15 +164,15 @@ public class XP3Extractor {
 						Process p = ProcessUtil.execInDir(
 								String.format("tlg2bmp \"%s\" \"%s\"",
 								tlgTemp, bmpTemp),
-								"tools/");
+								"");
 						ProcessUtil.waitFor(p);
 						ProcessUtil.kill(p);
-						
+
 						outFile.delete();
 						new File(tlgTemp).delete();
 						new File(bmpTemp).renameTo(new File(StringUtil.stripExtension(outFile.getAbsolutePath())+".bmp"));
 						*/
-						
+
 						FileUtil.writeBytes(outFile, out, 0, outL);
 					}
 				} else {
@@ -184,10 +184,10 @@ public class XP3Extractor {
 					Log.w(ioe.toString());
 				}
 			}
-			
+
 			//Benchmark.tock(outFile.getName() + " %s");
 		}
-		
+
 		uncompressedC.close();
 		uncompressedIn.close();
 
@@ -195,13 +195,13 @@ public class XP3Extractor {
 		fin.close();
 
 		uncompressedFile.delete();
-		
+
 		if (pl != null) pl.onFinished(archive + " fully extracted");
 	}
-	
+
 	static synchronized int unzip(InputStream in, byte out[], int inL) throws IOException {
 		Inflater inf = new Inflater();
-		
+
 		int read = 0;
 	    int inflated = 0;
 	    try {
@@ -220,7 +220,7 @@ public class XP3Extractor {
 					if (r == -1) {
 					    throw new EOFException("Unexpected end of ZLIB input stream");
 					}
-					read += r;					
+					read += r;
 					inf.setInput(readBuffer, 0, r);
 				}
 			}
@@ -228,10 +228,10 @@ public class XP3Extractor {
 			throw new IOException(e);
 		}
 	}
-	
+
 	static synchronized int unzip(InputStream in, OutputStream out, int inL) throws IOException {
 		Inflater inf = new Inflater();
-		
+
 		int read = 0;
 	    int inflated = 0;
 	    try {
@@ -251,7 +251,7 @@ public class XP3Extractor {
 					if (r == -1) {
 					    throw new EOFException("Unexpected end of ZIP input stream");
 					}
-					read += r;					
+					read += r;
 					inf.setInput(readBuffer, 0, r);
 				}
 			}
@@ -259,35 +259,35 @@ public class XP3Extractor {
 			throw new IOException(e);
 		}
 	}
-	
+
 	@SuppressWarnings("unused")
 	protected Entry readEntry(InputStream in) throws IOException {
 		Entry entry = new Entry();
-		
+
 		byte temp[] = new byte[4];
-		
+
 		in.read(temp);
 		if (!new String(temp).equals("File")) throw new IOException("FileFormat error :: " + new String(temp));
 		int entryLength = (int)read_s64(in);
-		
+
 		in.read(temp);
 		if (!new String(temp).equals("info")) throw new IOException("FileFormat error");
 		int infoLength = (int)read_s64(in);
-		
+
 		entry.encrypted = read_s32(in) != 0;
 		int origSize = (int)read_s64(in);
 		int compSize = (int)read_s64(in);
-		
+
 		int filenameL = (int)readLE(in, 2);
-		//System.err.println(origSize + " " + compSize + " " + new String(temp) + " " + filenameL);		
+		//System.err.println(origSize + " " + compSize + " " + new String(temp) + " " + filenameL);
 		if (infoLength != filenameL*2+22) throw new IOException("FileFormat error");
-		
+
 		char filename[] = new char[filenameL];
 		for (int n = 0; n < filenameL; n++) {
 			filename[n] = (char)readLE(in, 2);
 		}
-		entry.file = new String(filename); 
-		
+		entry.file = new String(filename);
+
 		in.read(temp);
 		if (!new String(temp).equals("segm")) throw new IOException("FileFormat error");
 		int numSegments = ((int)read_s64(in)) / 28;
@@ -298,7 +298,7 @@ public class XP3Extractor {
 			s.offset = (int)read_s64(in);
 			s.origSize = (int)read_s64(in);
 			s.compSize = (int)read_s64(in);
-			
+
 			entry.segments[n] = s;
 		}
 
@@ -309,12 +309,12 @@ public class XP3Extractor {
 
 		return entry;
 	}
-	
+
 	public void decrypt(String filename, byte data[], int dataL) {
 		if (dataL > 0x13) {
 			data[0x13] ^= 1;
 		}
-		if (dataL > 0x2ea29) {			
+		if (dataL > 0x2ea29) {
 			data[0x2ea29] ^= 3;
 		}
 
@@ -322,11 +322,11 @@ public class XP3Extractor {
 			data[n] ^= 0x36;
 		}
 	}
-	
+
 	//Getters
-	
+
 	//Setters
-	
+
 	//Inner Classes
 	private static class Entry {
 		public String file;
@@ -337,7 +337,7 @@ public class XP3Extractor {
 		public boolean compressed;
 		public int offset;
 		public int origSize;
-		public int compSize;		
+		public int compSize;
 	}
-	
+
 }

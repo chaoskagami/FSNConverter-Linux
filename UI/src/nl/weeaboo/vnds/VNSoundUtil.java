@@ -17,13 +17,13 @@ public final class VNSoundUtil {
 
 	public static String ffmpeg = "ffmpeg";
 
-	private VNSoundUtil() {		
+	private VNSoundUtil() {
 	}
-		
+
 	public static File padAudioFile(File src, File dst) throws IOException {
 		File tempF = new File(dst.getParent(), stripExtension(dst.getName())+".temp");
 		tempF.getParentFile().mkdirs();
-		
+
 		try {
 			//Decode to raw PCM
 
@@ -41,19 +41,19 @@ public final class VNSoundUtil {
 			}
 			ProcessUtil.waitFor(p);
 			ProcessUtil.kill(p);
-			
+
 			{
 				byte[] bytes = FileUtil.readBytes(tempF);
 				boolean isShort = bytes.length <= 10 * (44100*2*2);
 				float fadeSeconds = (isShort ? 1 : 3);
 				float padSeconds = (isShort ? 3 : 0);
-				
+
 				ShortBuffer[] samples = deinterleave(bytes, 2);
 				fadeInOut(samples, Math.round(fadeSeconds * 44100),
 						Math.round(fadeSeconds * 44100));
 				bytes = interleave(samples);
-				
-				//Pad raw PCM with data				
+
+				//Pad raw PCM with data
 				FileOutputStream fout = new FileOutputStream(tempF);
 				try {
 					fout.write(bytes);
@@ -63,21 +63,21 @@ public final class VNSoundUtil {
 					fout.close();
 				}
 			}
-			
+
 			//Encode to target format
 			p = ProcessUtil.execInDir(String.format(
 					"ffmpeg -y -f s16le -acodec pcm_s16le -ac 2 -ar 44100 -i \"%s\" \"%s\"",
 					tempF.getAbsolutePath(), dst.getAbsolutePath()),
-					"tools");
+					"");
 			ProcessUtil.waitFor(p);
 			ProcessUtil.kill(p);
 		} finally {
 			tempF.delete();
 		}
-		
+
 		return dst;
 	}
-	
+
 	public static void fadeInOut(ShortBuffer[] channels, int inDuration, int outDuration) {
 		for (ShortBuffer ch : channels) {
 			inDuration = Math.min(ch.limit()/2, inDuration);
@@ -103,17 +103,17 @@ public final class VNSoundUtil {
 			}
 		}
 	}
-	
+
 	protected static ShortBuffer[] deinterleave(byte[] srcArray, int channels) {
 		ByteBuffer src = ByteBuffer.wrap(srcArray);
 		src.order(ByteOrder.LITTLE_ENDIAN);
 		ShortBuffer ssrc = src.asShortBuffer();
-		
+
 		ShortBuffer[] dst = new ShortBuffer[channels];
 		for (int n = 0; n < channels; n++) {
 			dst[n] = ShortBuffer.allocate(ssrc.limit() / channels);
 		}
-		
+
 		while (ssrc.remaining() > 0) {
 			for (ShortBuffer buf : dst) {
 				buf.put(ssrc.get());
@@ -123,7 +123,7 @@ public final class VNSoundUtil {
 		for (ShortBuffer buf : dst) {
 			buf.rewind();
 		}
-		
+
 		return dst;
 	}
 
@@ -134,11 +134,11 @@ public final class VNSoundUtil {
 			oldpos[n] = src[n].position();
 			len += src[n].limit();
 		}
-		
+
 		ByteBuffer dst = ByteBuffer.allocate(2 * len);
 		dst.order(ByteOrder.LITTLE_ENDIAN);
 		ShortBuffer sdst = dst.asShortBuffer();
-		
+
 		try {
 			while (sdst.remaining() > 0) {
 				for (ShortBuffer buf : src) {
@@ -151,7 +151,7 @@ public final class VNSoundUtil {
 			}
 		}
 		dst.rewind();
-		
+
 		return dst.array();
 	}
 

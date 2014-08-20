@@ -29,7 +29,7 @@ import nl.weeaboo.vnds.ProgressListener;
 import nl.weeaboo.vnds.VNImageUtil;
 
 public class ImageConverter {
-	
+
 	public enum ConvertType {
 		TYPE_RAW_RGBA("RAW RGBA", "dta"),
 		TYPE_RAW_RGB256("RAW RGB256", "dta"),
@@ -37,43 +37,43 @@ public class ImageConverter {
 		TYPE_PNG("PNG", "png"),
 		TYPE_PNG_256_NEUQUANT("PNG 256 (neuquant)", "png"),
 		TYPE_PNG_256_MEDIAN("PNG 256 (median)", "png");
-		
+
 		private String label;
 		private String fileExt;
-		
+
 		private ConvertType(String label, String fileExt) {
 			this.label = label;
 			this.fileExt = fileExt;
 		}
-		
+
 		public String getFileExt() { return fileExt; }
 		public String toString() { return label; }
 	}
-	
+
 	public enum ScalingType {
 		NONE("None"), BACKGROUND("Background"), SPRITE("Sprite"), STRETCH("Stretch");
 
 		String label;
-		
+
 		private ScalingType(String label) {
 			this.label = label;
 		}
-		
+
 		public String toString() { return label; }
 	}
-	
+
 	public enum DitheringType {
 		NONE("None"), RANDOM("Random"), FLOYD_STEINBERG("Floyd-Steinberg");
-		
+
 		String label;
-		
+
 		private DitheringType(String label) {
 			this.label = label;
 		}
-		
+
 		public String toString() { return label; }
 	}
-	
+
 	private int maxThreads = 8;
 	private ConvertType mode = ConvertType.TYPE_RAW_RGBA;
 	private ScalingType scaling = ScalingType.NONE;
@@ -82,10 +82,10 @@ public class ImageConverter {
 	private int quality = 98; //JPG Only
 	private DitheringType dithering = DitheringType.NONE;
 	private boolean log;
-	
+
 	//Temporary vars
 	private Map<File, StringBuilder> processLogs;
-	
+
 	//Functions
 	protected static void printUsage() {
 		System.err.printf("Usage: java -jar ImageConverter.jar <flags> <file>\nflags:"
@@ -94,7 +94,7 @@ public class ImageConverter {
 				+ "\n\t-png <RGBA|256>"
 				+ "\n\t-jpg <quality (0-100)>"
 //				+ "\n\t-size <width> <height>"
-				+ "\n");		
+				+ "\n");
 	}
 
 	public static void main(String args[]) throws IOException {
@@ -122,12 +122,12 @@ public class ImageConverter {
 					}
 				} else if (args[n].startsWith("-threads")) {
 					ic.maxThreads = Integer.parseInt(args[++n]);
-/*					
+/*
 				} else if (args[n].startsWith("-size")) {
 					int w = Integer.parseInt(args[++n]);
 					int h = Integer.parseInt(args[++n]);
 					ic.setBackgroundSize(w, h);
-*/					
+*/
 				} else if (filename == null) {
 					filename = args[n];
 				} else {
@@ -138,12 +138,12 @@ public class ImageConverter {
 			printUsage();
 			return;
 		}
-		
+
 		if (filename == null) {
 			printUsage();
 			return;
 		}
-		
+
 		ic.convertFolder(filename, new ProgressListener() {
 			public void onFinished(String message) {
 				System.out.printf("%s\n", message);
@@ -153,7 +153,7 @@ public class ImageConverter {
 			}
 		});
 	}
-	
+
 	public void convertFolder(String folder, final ProgressListener pl) throws IOException {
 		convertFolder(folder, pl, 1);
 	}
@@ -169,7 +169,7 @@ public class ImageConverter {
 		} else {
 			files.put(folderF.getName(), folderF);
 		}
-							
+
 		BatchProcess bp = new BatchProcess();
 		bp.setTaskSize(32);
 		bp.setThreads(maxThreads);
@@ -186,20 +186,20 @@ public class ImageConverter {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public File convertFile(File file) {
 		return convertFile(file, null);
 	}
-	public File convertFile(File file, File targetFolder) {		
-		String filenameNoExt = file.getName();			
+	public File convertFile(File file, File targetFolder) {
+		String filenameNoExt = file.getName();
 		if (filenameNoExt.lastIndexOf('.') > 0) {
 			filenameNoExt = filenameNoExt.substring(0, filenameNoExt.lastIndexOf('.'));
 		}
 
 		StringBuilder log = new StringBuilder();
 		if (isLogging()) processLogs.put(file, log);
-		
-		try {				
+
+		try {
 			BufferedImage result = null;
 			try {
 				if (file.getName().endsWith(".bmp")) {
@@ -216,11 +216,11 @@ public class ImageConverter {
 				Log.e("Unreadable image: " + file.getAbsolutePath());
 				return null;
 			}
-			
+
 			int w = result.getWidth();
 			int h = result.getHeight();
 
-			//Scaling			
+			//Scaling
 			if (scaling == ScalingType.STRETCH) {
 				w = targetScreenSize.width;
 				h = targetScreenSize.height;
@@ -234,9 +234,9 @@ public class ImageConverter {
 					scaledW = Math.max(1, Math.round(w * scale));
 					scaledH = Math.max(1, Math.round(h * scale));
 				}
-				
+
 				Image scaled = ImageUtil.getScaledImage(result, scaledW, scaledH, Image.SCALE_AREA_AVERAGING);
-				
+
 				if (scaling == ScalingType.BACKGROUND) {
 					w = targetScreenSize.width;
 					h = targetScreenSize.height;
@@ -244,12 +244,12 @@ public class ImageConverter {
 					w = scaledW;
 					h = scaledH;
 				}
-				
+
 				result = ImageUtil.createCompatibleImage(w, h, scaled);
 				if (mode == ConvertType.TYPE_JPG) {
 					result = ImageUtil.asOpaqueImage(result);
 				}
-				
+
 				Graphics2D g = (Graphics2D)result.getGraphics();
 				if (scaling == ScalingType.BACKGROUND) {
 					int sw = Math.round(scale*srcScreenSize.width);
@@ -259,39 +259,39 @@ public class ImageConverter {
 				g.drawImage(scaled, (w-scaledW)/2, (h-scaledH)/2, null);
 				g.dispose();
 			}
-			
+
 			//Dithering
 			if (dithering == DitheringType.RANDOM) {
 				int[] rgb = result.getRGB(0, 0, w, h, null, 0, w);
-				
+
 				Random rnd = new Random(0x13371337);
 				int t = 0;
 				for (int y = 0; y < h; y++) {
 					for (int x = 0; x < w; x++) {
 						int c = rgb[t];
-						
+
 						double r = ((c>>16)&0xFF) * 31.0 / 255.0;
 						double g = ((c>>8 )&0xFF) * 31.0 / 255.0;
 						double b = ((c    )&0xFF) * 31.0 / 255.0;
-						
+
 						boolean ceil = rnd.nextFloat() < (r-Math.floor(r) + g-Math.floor(g) + b-Math.floor(b)) / 3.0;
-						
+
 						int ri = (int)(ceil ? Math.ceil(r) : Math.floor(r));
 						int gi = (int)(ceil ? Math.ceil(g) : Math.floor(g));
 						int bi = (int)(ceil ? Math.ceil(b) : Math.floor(b));
-						
+
 						rgb[t] = (c&0xFF000000) | (((ri<<3)&0xFF)<<16) | (((gi<<3)&0xFF)<<8) | ((bi<<3)&0xFF);
 						t++;
 					}
 				}
-				
+
 				result.setRGB(0, 0, w, h, rgb, 0, w);
 			} else if (dithering == DitheringType.FLOYD_STEINBERG) {
 				int[] rgb = result.getRGB(0, 0, w, h, null, 0, w);
 				floydSteinberg(rgb, w, h);
 				result.setRGB(0, 0, w, h, rgb, 0, w);
 			}
-			
+
 			if (targetFolder == null) {
 				targetFolder = file.getParentFile();
 				file.delete();
@@ -299,36 +299,36 @@ public class ImageConverter {
 
 			//Create unique hash (multiple threads are writing temp files in the same folder)
 			String threadHash = String.valueOf(hashCode() ^ file.hashCode() ^ Thread.currentThread().hashCode());
-			
+
 			file = new File(String.format("%s/%s.%s",
 					targetFolder, filenameNoExt, mode.getFileExt().toLowerCase()));
 			if (file.getParentFile() != null) {
 				file.getParentFile().mkdirs();
 			}
-			
+
 			if (mode.getFileExt().equalsIgnoreCase("jpg")) {
 				String bmpFile = String.format("%s/__%s.bmp", targetFolder, threadHash);
 				String tmpFile = String.format("%s/__%s.jpg", targetFolder, threadHash);
 
 				ImageIO.write(result, "bmp", new File(bmpFile));
-				
+
 				Process p = ProcessUtil.execInDir(String.format(
 						"cjpeg -quality %d -optimize -dct fast \"%s\" \"%s\"",
 						quality, bmpFile, tmpFile),
-						"tools/");
+						"");
 				ProcessUtil.waitFor(p);
 				ProcessUtil.kill(p);
 				file.delete();
 				new File(bmpFile).delete();
 				new File(tmpFile).renameTo(file);
-			} else if (mode.getFileExt().equalsIgnoreCase("png")) {				
+			} else if (mode.getFileExt().equalsIgnoreCase("png")) {
 				String tmpFile = String.format("%s/__%s.png", targetFolder, threadHash);
 				ImageIO.write(result, "png", new File(tmpFile));
-				
+
 				if (mode == ConvertType.TYPE_PNG_256_MEDIAN) {
 					Process p = ProcessUtil.execInDir(String.format(
 							"pngquant 256 \"%s\"", tmpFile),
-							"tools/pngquant-0.95/");
+							"");
 					ProcessUtil.waitFor(p);
 					ProcessUtil.kill(p);
 					file.delete();
@@ -336,7 +336,7 @@ public class ImageConverter {
 				} else if (mode == ConvertType.TYPE_PNG_256_NEUQUANT) {
 					Process p = ProcessUtil.execInDir(String.format(
 							"pngnq \"%s\"", tmpFile),
-							"tools/pngnq-0.5-i386/");
+							"");
 					ProcessUtil.waitFor(p);
 					ProcessUtil.kill(p);
 					file.delete();
@@ -345,18 +345,18 @@ public class ImageConverter {
 					String crushedName = StringUtil.stripExtension(tmpFile)+".crushed.png";
 					Process p = ProcessUtil.execInDir(String.format(
 							"pngcrush -fix \"%s\" \"%s\"", tmpFile, crushedName),
-							"tools/pngcrush-1.6.10/");
+							"");
 					ProcessUtil.waitFor(p);
 					ProcessUtil.kill(p);
 					file.delete();
 					new File(crushedName).renameTo(file);
 				}
-				
+
 				new File(tmpFile).delete();
 			} else if (mode.getFileExt().equalsIgnoreCase("dta")) {
 				if (mode == ConvertType.TYPE_RAW_RGBA) {
 					int[] rgb = result.getRGB(0, 0, w, h, null, 0, w);
-					
+
 					BufferedOutputStream bout = new BufferedOutputStream(new FileOutputStream(file));
 					for (int c : rgb) {
 						int a = ((c>>>24) >= 127 ? (1<<15) : 0);
@@ -364,7 +364,7 @@ public class ImageConverter {
 						int g = (c>>11) & 31;
 						int b = (c>>3)  & 31;
 						c = a | (b<<10) | (g<<5) | (r);
-						
+
 						bout.write(c&0xFF);
 						bout.write((c>>8)&0xFF);
 					}
@@ -376,7 +376,7 @@ public class ImageConverter {
 
 					Process p = ProcessUtil.execInDir(String.format(
 							"pngnq \"%s\"", tmpFile.getAbsolutePath()),
-							"tools/pngnq-0.5-i386/");
+							"");
 					ProcessUtil.waitFor(p);
 					ProcessUtil.kill(p);
 					tmpFile.delete();
@@ -386,7 +386,7 @@ public class ImageConverter {
 					IndexColorModel icm = (IndexColorModel)result.getColorModel();
 
 					BufferedOutputStream bout;
-					
+
 					bout = new BufferedOutputStream(new FileOutputStream(
 							StringUtil.stripExtension(file.getAbsolutePath())+".pal"));
 					for (int n = 0; n < icm.getMapSize(); n++) {
@@ -408,11 +408,11 @@ public class ImageConverter {
 						bout.write(dta[n]);
 					}
 					bout.close();
-					
+
 					tmpFile.delete();
 				}
-			} else {				
-				throw new IllegalArgumentException("Invalid file-ext: " + mode.getFileExt());					
+			} else {
+				throw new IllegalArgumentException("Invalid file-ext: " + mode.getFileExt());
 			}
 			return file;
 		} catch (Exception e) {
@@ -422,40 +422,40 @@ public class ImageConverter {
 
 		return null;
 	}
-	
+
 
 	public File dumpLog(String filename) throws IOException {
 		File file = new File(filename);
 		PrintWriter out = new PrintWriter(new FileWriter(file));
-		
+
 		out.println("----------------------------------------");
 		out.println("----------------------------------------");
 		for (Entry<File, StringBuilder> entry : getLogs().entrySet()) {
 			out.println();
 			out.println("Log for file:" + entry.getKey().getAbsolutePath());
 			out.println();
-			
+
 			out.println(entry.getValue().toString());
-			
+
 			out.println("----------------------------------------");
 			out.println("----------------------------------------");
 		}
-		
+
 		out.close();
-		
+
 		return file;
 	}
 
 	private static int round(float f) {
 		return (int)f;
 	}
-	
+
 	private static float saturate255(float f) {
 		if (f < 0f)   return 0f;
 		if (f > 255f) return 255f;
 		return f;
 	}
-	
+
 	/** Does dithering for 5-bit colors (equivalent to 8-bit / 8.0) */
 	private static void floydSteinberg(int rgb[], int w, int h) {
 		int L = w * h;
@@ -474,12 +474,12 @@ public class ImageConverter {
 		final int DOWN = w;
 		final int DOWN_LEFT = DOWN-1;
 		final int DOWN_RIGHT = DOWN+1;
-		
+
 		for (int c = 0; c < 3; c++) {
 			float[] p = rgba[c];
 			int t = 0;
 			for (int y = 0; y < h; y++) {
-				for (int x = 0; x < w; x++) {					
+				for (int x = 0; x < w; x++) {
 					float oldc = p[t];
 					float newc = p[t] = round(oldc * DIV_8) << 3;
 					float error = oldc - newc;
@@ -500,12 +500,12 @@ public class ImageConverter {
 							p[t+DOWN_RIGHT] = saturate255(p[t+DOWN_RIGHT]);
 						}
 					}
-					
+
 					t++;
-				}				
+				}
 			}
 		}
-		
+
 		int t = 0;
 		for (int y = 0; y < h; y++) {
 			for (int x = 0; x < w; x++) {
@@ -518,7 +518,7 @@ public class ImageConverter {
 			}
 		}
 	}
-	
+
 	// Getters
 	public Map<File, StringBuilder> getLogs() { return processLogs; }
 	public boolean isLogging() { return log; }
@@ -529,7 +529,7 @@ public class ImageConverter {
 	public int getQuality() { return quality; }
 	public DitheringType getDitheringType() { return dithering; }
 	public int getMaxThreads() { return maxThreads; }
-	
+
 	// Setters
 	public void setMode(ConvertType mode) { this.mode = mode; }
 	public void setScalingType(ScalingType s) { this.scaling = s; }
@@ -539,5 +539,5 @@ public class ImageConverter {
 	public void setQuality(int quality) { this.quality = quality; }
 	public void setDitheringType(DitheringType dithering) { this.dithering = dithering; }
 	public void setMaxThreads(int mt) { this.maxThreads = mt; }
-	
+
 }

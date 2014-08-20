@@ -14,9 +14,9 @@ import nl.weeaboo.vnds.Log;
 
 public class RealtaNuaSoundExtractor {
 
-	public RealtaNuaSoundExtractor() {		
+	public RealtaNuaSoundExtractor() {
 	}
-	
+
 	//Functions
 	public static void main(String args[]) {
 		RealtaNuaSoundExtractor se = new RealtaNuaSoundExtractor();
@@ -28,7 +28,7 @@ public class RealtaNuaSoundExtractor {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public static final int read_s32(InputStream in) throws IOException {
 		return (int)readLE(in, 4);
 	}
@@ -46,14 +46,14 @@ public class RealtaNuaSoundExtractor {
 	public void extract(String discRoot, String outFolder) throws IOException {
 		File outFolderFile = new File(outFolder);
 		outFolderFile.mkdirs();
-		
-		File newExe = new File(outFolder+"/ahx2wav.exe");
-		FileUtil.copyFile(new File("tools/ahx2wav_v014/ahx2wav.exe"), newExe);
+
+		File newExe = new File("bin/ahx2wav");
+		FileUtil.copyFile(new File("bin/ahx2wav"), newExe);
 		FileInputStream fin = new FileInputStream(discRoot+"/data0.bin");
 		FileChannel fc = fin.getChannel();
-		
+
 		Log.v("Extracting AHX sound files...");
-		
+
 		try {
 			byte sig[] = new byte[] {(byte)'A', (byte)'F', (byte)'S', (byte)'\0'};
 			byte arcsig[] = new byte[4];
@@ -61,7 +61,7 @@ public class RealtaNuaSoundExtractor {
 			for (int n = 0; n < 4; n++) {
 				if (arcsig[n] != sig[n]) throw new IOException("FileFormat Error");
 			}
-			
+
 			//0x808      -- file offset/size table offset
 			//0x466C3000 -- filename table offset
 			//0x00159660 -- filename table length
@@ -77,7 +77,7 @@ public class RealtaNuaSoundExtractor {
 				files[n].offset = 0x800 + read_s32(fin);
 				files[n].length = read_s32(fin);
 			}
-							
+
 			byte nameBuffer[] = new byte[32];
 			for (int n = 0; n < filesL; n++) {
 				fc.position(0x466C3000 + 0x30 * n);
@@ -86,12 +86,12 @@ public class RealtaNuaSoundExtractor {
 				while (l < nameBuffer.length && nameBuffer[l] != '\0') l++;
 				files[n].filename = new String(nameBuffer, 0, l);
 			}
-			
+
 			for (int n = 0; n < filesL; n++) {
 				if (n % 256 == 0) {
 					Log.v(String.format("(%d/%d) %s...", n+1, filesL, files[n].filename));
 				}
-				
+
 				File outFile = new File(outFolder+'/'+files[n].filename);
 				FileOutputStream fout = new FileOutputStream(outFile);
 				int r = 0;
@@ -99,7 +99,7 @@ public class RealtaNuaSoundExtractor {
 					r += fc.transferTo(files[n].offset+r, files[n].length-r, fout.getChannel());
 				}
 				fout.flush();
-				fout.close();				
+				fout.close();
 
 				//Convert to wav
 				Process p = ProcessUtil.execInDir(String.format(
@@ -111,12 +111,12 @@ public class RealtaNuaSoundExtractor {
 					throw new IOException("Error converting file: " + outFile.getAbsolutePath() + "\nAborting sound extraction.");
 				}
 				ProcessUtil.kill(p);
-				
+
 				//Delete original
-				outFile.delete();				
+				outFile.delete();
 			}
-			
-			//Rename a.b.wav to a.wav 
+
+			//Rename a.b.wav to a.wav
 			File converted[] = outFolderFile.listFiles();
 			for (File f : converted) {
 				String filename = f.getName();
@@ -133,9 +133,9 @@ public class RealtaNuaSoundExtractor {
 			newExe.delete();
 		}
 	}
-	
+
 	//Getters
-	
+
 	//Setters
 
 	//Inner Classes
