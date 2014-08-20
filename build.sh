@@ -31,11 +31,9 @@ if [ "$F" == "build" ]; then
 
 	rm -rf tmp
 
-	cd Tools/
+	cd Tools/ahx2wav
 
-	cd ahx2wav
-
-	gcc -lm -o ahx2wav ahx2wav.c getopt.c
+	gcc -L/usr/lib ahx2wav.c getopt.c -o ahx2wav -lm
 
 	if [ ! -e ahx2wav ]; then
 		exit 1
